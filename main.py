@@ -3,10 +3,12 @@ from model_api.Api import Api, proces
 from sys import argv
 import os
 from datetime import datetime
-from dataset_procces import *
+from DProcess import *
+from indicaters import *
+from handlerDataset import Handler
 
-def create_dataset(args: list):
-    #python main.py create_dataset 1000 
+def parser_create_dataset(args: list):
+    #python main.py create_dataset 1000 ?True data  
     #python main.py create_dataset 1 2024-03-13 14:15:00
     URL = "https://lk.bcs.ru/terminal"
     login = "89833087191"
@@ -33,7 +35,7 @@ def create_dataset(args: list):
             api.remove_launch_dir()
         else:
             n += 1
-            api.path_launch =  f"data/{l[0]}_launch_{n+1}"
+            api.path_launch =  f"data/{l[0]}_launch_{n+1}" #data deleted
 
         if len(data) >= counter:
             break
@@ -44,22 +46,27 @@ def create_dataset(args: list):
     # elif len(args) == 3:
     #     api.generate_for_df(Procee.get_none_df(args[2]))
 
+def create_dataset(args: list):
+    #python main.py data create_dataset ?1000 ?True ?data
+    pass
+
+
 
 def create_model_dataset(args: list):
-    #python main.py create_model_dataset procces_dataset_launch_3/CNY-5m.csv
+    #python main.py create_model_dataset process_dataset_launch_3/CNY-5m.csv
     api = Api(*args)
     api.train_model_pred_dataset()
 
 
 def lstm_train(args: list):
-    #python main.py lstm_train procces_dataset_launch_2/CNY-5m.csv
+    #python main.py lstm_train process_dataset_launch_2/CNY-5m.csv
     api = Api(*args)
     api.lstm_train()
 
 
 def load_model_dataset(args: list):
-    #python main.py load_model_dataset procces_dataset_launch_2/CNY-5m.csv create_model_dataset_launch_2/model_forest.joblib
-    #python main.py load_model_dataset procces_dataset_launch_2/CNY-5m.csv lstm_train_launch_2/model_lstm.joblib
+    #python main.py load_model_dataset process_dataset_launch_2/CNY-5m.csv create_model_dataset_launch_2/model_forest.joblib
+    #python main.py load_model_dataset process_dataset_launch_2/CNY-5m.csv lstm_train_launch_2/model_lstm.joblib
     model_path = args.pop(2)
     api = Api(*args, flag_save=False)
     api.model_load(model_path)
@@ -70,40 +77,88 @@ def load_model_dataset(args: list):
         api.test_lstm()
 
 
-def procces_dataset(args: list):
-    #python main.py procces_dataset 1 10 5m
-    p = Procee(*args)
-    p.create_launch_dir()
+def process_dataset(args: list):
+    #python main.py process_dataset data ?5m ?True
+    #Process.create_launch_dir(*args)
+    path_launch, _ = args.pop(0)
+    path_data = args.pop(0)
+    timetravel = None
+    flag_save = False
+    path_filter = None
+    if len(args) > 0:
+        timetravel = args.pop(0)
+    if len(args) > 0:
+        flag_save = args.pop(0)
+    if len(args) > 0:
+        path_filter = args.pop(0)
+
+    hadler_d = Handler(path_launch, path_data)
+    hadler_d.process_dataset(timetravel, flag_save, path_filter)
+
+
+def indecaters_add(args: list):
+    #python main.py data indecaters_add process_dataset_launch_2/CNY-5m.csv ?True
+    #python main.py data indecaters_add data/process_dataset_launch_1/
+    path_launch, _ = args.pop(0)
+    path_data = args.pop(0)
+    flag_save = False
+    DEBUG = False
+
+    if len(args) > 0:
+        flag_save = args.pop(0)
+
+    if len(args) > 0:
+        DEBUG = args.pop(0)
+
+    hadler_d = Handler(path_launch, path_data, DEBUG)
+    hadler_d.indecaters_add(True, flag_save=flag_save)
+
+
+def split_df(args: list):
+    #python main.py split_df data indecaters_add_1/CNY-5m.csv ?5m ?True
+    path_launch, _ = args.pop(0)
+    path_data = args.pop(0)
+    timetravel = None
+    flag_save = False
+    path_filter = "launch"
+    if len(args) > 0:
+        timetravel = args.pop(0)
+    if len(args) > 0:
+        flag_save = args.pop(0)
+    if len(args) > 0:
+        path_filter = args.pop(0)
+
+    hadler_d = Handler(path_launch, path_data)
+    hadler_d.split_timetravel(timetravel, flag_save, path_filter)
 
 
 def drop_df(args: list):
-    #python main.py drop_df procces_dataset_launch_2/CNY-5m.csv
+    #python main.py drop_df process_dataset_launch_2/CNY-5m.csv
     args.pop(0)
-    Procee.drop_df(*args)
+    Process.drop_df(*args)
 
+def allprocess_dataset(args: list):
+    #python main.py allprocess_dataset data/process_dataset_launch_1/ 5m ?True
+    #Process.create_launch_dir(*args)
+    path_launch, _ = args.pop(0)
+    path_data = args.pop(0)
+    flag_save = False
+    timetravel = args.pop(0)
+    DEBUG = False
 
-def test_atr(args: list):
-    #python main.py test_atr procces_dataset_launch_2/CNY-5m.csv
-    args.pop(0)
-    get_atr(*args)
+    if len(args) > 0:
+        flag_save = args.pop(0)
 
+    if len(args) > 0:
+        DEBUG = args.pop(0)
 
-def test_support_resistance(args: list):
-    #python main.py test_support_resistance procces_dataset_launch_2/CNY-5m.csv
-    args.pop(0)
-    get_support_resistance(*args)
+    hadler_d = Handler(path_launch, path_data, DEBUG)
 
+    hadler_d.split_timetravel(timetravel, True, False)
 
-def test_stochastic_oscillator(args: list):
-    #python main.py test_stochastic_oscillator procces_dataset_launch_2/CNY-5m.csv
-    args.pop(0)
-    get_stochastic_oscillator(*args)
+    hadler_d.process_dataset(timetravel=timetravel, flag_save=False)
 
-
-def test_trend(args: list):
-    #python main.py test_trend procces_dataset_launch_2/CNY-5m.csv
-    args.pop(0)
-    get_trend(*args)
+    hadler_d.indecaters_add(flag_save=flag_save)
 
 
 def main(data:list) -> None:
@@ -114,14 +169,14 @@ def main(data:list) -> None:
     
 if __name__ == "__main__":
     skript, *l = argv
-
     n = 0
-    for file in os.listdir("data"):
+    data_pah = l.pop(0)
+    for file in os.listdir(f"{data_pah}"):
         if l[0] in file:
             if int(file.split("_")[-1]) >= n:
                 n = int(file.split("_")[-1])
 
-    path_launch = f"data/{l[0]}_launch_{n+1}"
+    path_launch = f"{data_pah}/{l[0]}_launch_{n+1}"
     l.insert(0, (path_launch, n+1))
     print("[INFO] START main")
     main(l)

@@ -8,7 +8,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split as tts
-from dataset_procces import Procee
+from DProcess import Process
 from matplotlib import pyplot as plt
 import math
 import joblib
@@ -34,7 +34,7 @@ def train_test_split(df: pd.DataFrame, n: int = 5) -> tuple[list, list, list, li
             l = []
     X = np.array(X)
     y = np.array(y)
-    print(Procee.chit_none_df(df))
+    print(Process.chit_none_df(df))
     return tts(X, y, test_size=0.2)
 
 
@@ -249,5 +249,5 @@ def proces(api: Api):
                 result = round(y[0][j], 2)
                 df.at[i, it] = result
     
-    print(Procee.chit_none_df(df))
+    print(Process.chit_none_df(df))
     df.to_csv(api.file_path_csv)
